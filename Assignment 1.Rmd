@@ -19,7 +19,13 @@ y <- c(0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,1,1,1,1,1)
 
 ```
 
-#glm
+# Or you can upload your csv file by locating your local file, for example:
+```{r}
+data1 <- read.csv("/Users/ccc/Desktop/thesis/data/absorbance.csv")
+````
+
+
+# glm
 ```{r}
 mylogit <- glm(y ~ x, family = "binomial"(link = "logit"))
 mylogit
