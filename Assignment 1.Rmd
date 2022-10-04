@@ -1,0 +1,84 @@
+---
+title: "Directly Study Sep 21"
+author: "Linxi Li T00622714"
+output: pdf_document
+date: "2022-09-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+# Simulated data
+```{r}
+x <- c(0.50,0.75,1.00,1.25,1.50,1.75,1.75,2.00,2.25,2.50,2.75,3.00,3.25,3.50,4.00,
+       4.25,4.50,4.75,5.00,5.50)
+y <- c(0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,1,1,1,1,1)
+
+```
+
+#glm
+```{r}
+mylogit <- glm(y ~ x, family = "binomial"(link = "logit"))
+mylogit
+```
+
+
+# MLE
+```{r}
+#MLE for logistic
+
+nlogL_logstic <- function(paravec){
+  # paravec[1] - b0
+  # paravec[2] - b1
+  sum(y*paravec[1])+sum(y*paravec[2]*x)-sum(log(1+exp(paravec[1]+paravec[2]*x)))
+  
+}
+
+MLE = optim(c(0,0), 
+            fn=nlogL_logstic,
+            method = "L-BFGS-B", 
+            control = list(fnscale = -1), 
+            hessian = FALSE)
+MLE
+
+```
+
+
+# Newton
+```{r}
+
+#Newton of b0 and b1
+nlogL_log <- function(b0,b1){
+  # b0
+  # b1
+  sum(y*(b0+b1*x))-sum(log(1+exp(b0+b1*x)))
+}
+
+nor_MLE_of_Newtown <- function (x, itr, b00=0,b11=0) {
+  # input: x-vector of observations; itr- iteration times; b00,b11 - initial value
+  # output: MLE estimate and maximum log-likelihood value
+  b0<- rep(0,itr+1)
+  b1<- rep(0,itr+1)
+  b0[1] <- b00
+  b1[1] <- b11
+  for (i in 1:itr){
+    #b[n+1] = b[n] - l(bn)/l'(bn)
+    b0[i+1] = b0[i] - (sum(y)-sum(exp(b0[i]+b1[i]*x)/(1+exp(b0[i]+b1[i]*x))))/
+      (-sum((exp(b0[i]+b1[i]*x))/(exp(b0[i]+b1[i]*x)+1)^2))
+      
+    #sigma2[i+1] = sigma[i] - sigma[i] + (1/n * sum((xi - mu)^2))
+    b1[i+1]=b1[i] - (sum(x*y)-sum(x*exp(b0[i]+b1[i]*x)/(1+exp(b0[i]+b1[i]*x))))/
+      (-sum(((x^2)*exp(b0[i]+b1[i]*x))/(exp(b0[i]+b1[i]*x)^2)))
+      
+  }
+  data.frame(b0=b0, b1=b1,log.lik.value=nlogL_log(b0,b1))
+}
+
+
+n<-x
+nor_MLE_of_Newtown(n,1000)
+```
+
