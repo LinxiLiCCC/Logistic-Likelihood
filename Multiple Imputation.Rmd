@@ -1,0 +1,195 @@
+---
+title: "Multiple Imputation"
+author: "Linxi Li T00622714"
+date: "2022-10-20"
+output: pdf_document
+---
+
+This instruction is for imputation missing data
+We are using mice() package to deal with the missing data
+So we installed the package
+
+
+```{r}
+#install.packages("mice")
+```
+
+```{r}
+library(mice)
+library(VIM)
+```
+
+# R Markdown
+I created a dataset and save as a csv document:
+
+```{r cars}
+data <- read.csv("/Users/ccc/Desktop/create data.csv")
+data
+```
+
+# Including Plots
+I am going to show the plot of how the data missing, the red spot represents
+the missing data
+
+
+```{r}
+md.pattern(data)
+md.pairs(data)
+```
+
+
+We can also draw the data distribution of each column of the data set. 
+
+
+In the figure, the red color indicates the missing values, and the transition 
+colors from black to gray to white indicate the different values, the more 
+transition colors indicate the more scattered data values, and the less 
+transition colors indicate the more concentrated data values.
+
+
+```{r}
+matrixplot(data)
+```
+
+Next, we use the mice() function, which is used to populate the data
+
+```{r}
+imputed_Data <- mice(data, m=10, maxit = 5, method = 'pmm', seed = 500)
+
+#note that: 
+#m, the number of fill matrices for the multi-fill method, default is 5
+#maxit, the maximum number of iterations, default is 5
+#method, the method used to fill, and pmm is predictive mean matching.
+#We can use methods(mice) to see what methods are available.
+```
+
+```{r}
+summary(imputed_Data)
+```
+
+# View the result of imputation:
+
+```{r}
+imputed_Data$imp
+```
+
+View the plot of Sub-panel observations, grouped by independent individual 
+indicators, were populated for the 10 groups of data.
+
+
+```{r}
+stripplot(imputed_Data, col=c("grey",mdc(2)),pch=c(1,20))
+```
+
+
+# Analyze the results and optimize the model
+
+```{r}
+fit=with(imputed_Data,lm(Ozone ~ Wind + Solar.R + Temp))
+summary(fit)
+```
+
+Using the with() function, a multiple linear regression analysis model was 
+performed on the five interpolated data sets, and a t-test was performed to 
+determine the validity of each variable in the data set.
+
+
+```{r}
+pooled=pool(fit)
+pool.r.squared(fit)
+```
+
+
+
+```{r}
+completeData1 <- complete(imputed_Data,1)
+data1 <- lm(Ozone ~ Wind + Solar.R + Temp, data=completeData1)
+summary(data1)
+```
+
+```{r}
+completeData2 <- complete(imputed_Data,2)
+data2 <- lm(Ozone ~ Wind + Solar.R + Temp, data=completeData2)
+summary(data2)
+```
+
+```{r}
+completeData3 <- complete(imputed_Data,3)
+data3 <- lm(Ozone ~ Wind + Solar.R + Temp, data=completeData3)
+summary(data3)
+```
+
+```{r}
+completeData4 <- complete(imputed_Data,4)
+data4 <- lm(Ozone ~ Wind + Solar.R + Temp, data=completeData4)
+summary(data4)
+```
+
+```{r}
+completeData5 <- complete(imputed_Data,5)
+data5 <- lm(Ozone ~ Wind + Solar.R + Temp, data=completeData5)
+summary(data5)
+```
+
+```{r}
+completeData6 <- complete(imputed_Data,6)
+data6 <- lm(Ozone ~ Wind + Solar.R + Temp, data=completeData6)
+summary(data6)
+```
+
+```{r}
+completeData7 <- complete(imputed_Data,7)
+data7 <- lm(Ozone ~ Wind + Solar.R + Temp, data=completeData7)
+summary(data7)
+```
+
+```{r}
+completeData8 <- complete(imputed_Data,8)
+data8 <- lm(Ozone ~ Wind + Solar.R + Temp, data=completeData8)
+summary(data8)
+```
+
+```{r}
+completeData9 <- complete(imputed_Data,9)
+data9 <- lm(Ozone ~ Wind + Solar.R + Temp, data=completeData9)
+summary(data9)
+```
+
+```{r}
+completeData10 <- complete(imputed_Data,10)
+data10 <- lm(Ozone ~ Wind + Solar.R + Temp, data=completeData10)
+summary(data10)
+```
+
+By checking the R-square, I am going to use the imputation 8, as our missing data. 
+So our model will be: Ozone = 40.23805-1.70001Wind-0.02226Solar.R+0.17566Temp
+
+
+# Distribution of 100 imputation
+```{r}
+imputed_Data100 <- mice(data, m=100, maxit = 5, method = 'pmm', seed = 500)
+fit100=with(imputed_Data100,lm(Ozone ~ Wind + Solar.R + Temp))
+summary(fit100)
+```
+
+
+```{r}
+d = matrix(nrow = 100, ncol = 4)
+for (i in seq(1,100)){
+  for (j in seq(1,4)){
+    d[i,j]=fit100$analyses[[i]][[1]][[j]]
+    #print(i)
+  }
+}
+d
+hist(d[,1],breaks=50,xlab="Intercept", ylab="distribution",main="Intercept Density",
+     col = "brown")
+hist(d[,2],breaks=50,xlab="Wind", ylab="distribution",main="Wind Density",
+     col="orange red")
+hist(d[,3],breaks=50,xlab="Solar.R", ylab="distribution",main="Solar R Density",
+     col="lime green")
+hist(d[,4],breaks=50,xlab="Temp", ylab="distribution",main="Temperature Density",
+     col="medium slate blue")
+```
+
+
