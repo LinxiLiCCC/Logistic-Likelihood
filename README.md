@@ -1,2 +1,2 @@
-# Logistic-Likelihood
+# Directly Study
 Directly Study
